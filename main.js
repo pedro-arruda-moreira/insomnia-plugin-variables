@@ -1,44 +1,92 @@
-function getVarStore(insomnia) {
-	let store = insomnia.varStore;
-	if(isNotValid(typeof store)) {
-		console.log('creating new var store.');
-		store = {};
-		insomnia.varStore = store;
+let pluginStore = null;
+
+function checkPluginStore(pStore) {
+	if(pluginStore == null && pStore != null) {
+		pluginStore = pStore;
 	}
-	return store;
+	return pluginStore;
+}
+
+async function isStoreEnabled(pStore) {
+	pStore = checkPluginStore(pStore);
+	if(pStore == null) {
+		return false;
+	}
+	return await pStore.hasItem('enabled')
+	  && await pStore.getItem('enabled') == 'true';
+}
+
+async function getOrSetValueOnStore(pStore, envName, key, value) {
+	pStore = checkPluginStore(pStore);
+	if(pStore == null) {
+		throw new Error('plugin store not found.');
+	}
+	if(!isNotValid(typeof insomnia)) {
+		let varStore = getVarStore(insomnia);
+		if(envName != null) {
+			if(isNotValid(typeof varStore['__environment__'])) {
+				varStore['__environment__'] = envName;
+			}
+		} else {
+			envName = varStore['__environment__'];
+		}
+	} else if(envName == null) {
+		throw new Error('unknown environment ID.');
+	}
+	if(isNotValid(typeof envName)) {
+		console.log('could not store var: env unknown.');
+		return null;
+	}
+	let pluginStoreKey = envName + '_' + key;
+	if(value == null) {
+		return await pStore.getItem(pluginStoreKey);
+	} else {
+		await pStore.setItem(pluginStoreKey, value);
+	}
+}
+
+function getVarStore(/*insomnia*/) {
+	let varStore = insomnia.varStore;
+	if(isNotValid(typeof varStore)) {
+		console.log('creating new var store.');
+		varStore = {};
+		insomnia.varStore = varStore;
+	}
+	return varStore;
 }
 
 function isNotValid(objType) {
 	return objType == 'undefined' || objType == 'null';
 }
 
-async function getFromEnvVar(context, varName, requestContext) {
+async function getFromEnvVar(context, varName, isRequestContext) {
 	let theEnv = context.context;
-	if(requestContext) {
+	if(isRequestContext) {
 		theEnv = context.request.getEnvironment();
 	}
 	let envId = theEnv.getEnvironmentId();
 	let envVar = null;
-	let storeName = envId + '_' + varName;
-	let isEnabled = await context.store.hasItem('enabled') && await context.store.getItem('enabled') == 'true';
-	if(isEnabled && (await context.store.hasItem(storeName))) {
-		return await context.store.getItem(storeName);
-	} else {
-		envVar = theEnv[varName];
-		if(!requestContext) {
-			let notForSend = context.renderPurpose != 'send';
-			if(isNotValid(typeof envVar)) {
-				if(notForSend) {
-					return "<variable '" + varName + "' not found>";
-				} else {
-					throw new Error("variable '" + varName + "' not found");
-				}
-			} else if(notForSend && envVar == '') {
-				return '<empty string>';
-			}
+	let isEnabled = await isStoreEnabled(context.store);
+	if(isEnabled) {
+		let value = await getOrSetValueOnStore(context.store, envId, varName, null);
+		if(!!value) {
+			return value;
 		}
-		return envVar;
 	}
+	envVar = theEnv[varName];
+	if(!isRequestContext) {
+		let notForSend = context.renderPurpose != 'send';
+		if(isNotValid(typeof envVar)) {
+			if(notForSend) {
+				return "<variable '" + varName + "' not found>";
+			} else {
+				throw new Error("variable '" + varName + "' not found");
+			}
+		} else if(notForSend && envVar == '') {
+			return '<empty string>';
+		}
+	}
+	return envVar;
 }
 
 async function createConfigGUI(context) {
@@ -52,21 +100,21 @@ async function createConfigGUI(context) {
 	let chk = createElem('input');
 	chk.id = 'checkboxVarPluginSaveVars';
 	chk.type = 'checkbox';
-	let isChecked = await context.store.hasItem('enabled') && await context.store.getItem('enabled') == 'true';
+	let isChecked = await isStoreEnabled(context.store);
 	if(isChecked) {
 		chk.setAttribute('checked', 'checked');
 	}
 	chk.addEventListener('change', async function(ev) {
 		isChecked = !isChecked;
-		await context.store.setItem('enabled', '' + isChecked);
+		await checkPluginStore(context.store).setItem('enabled', '' + isChecked);
 	});
 	let clearBtn = createElem('a');
 	clearBtn.href = 'javascript://';
 	clearBtn.addEventListener('click', async function(ev) {
 		if(global.confirm('Are you sure? This cannot be undone!')) {
-			await context.store.clear();
+			await checkPluginStore(context.store).clear();
 			if(isChecked) {
-				await context.store.setItem('enabled', '' + isChecked);
+				await checkPluginStore(context.store).setItem('enabled', '' + isChecked);
 			}
 		}
 	});
@@ -80,26 +128,29 @@ async function createConfigGUI(context) {
 	return div;
 }
 
-async function doGetVar(context, varName, onlyFromMemory) {
+async function doGetVar(context, varName, isRequestContext) {
 	if(isNotValid(typeof insomnia)) {
-		if(onlyFromMemory) {
+		if(context == null) {
 			return null;
 		}
-		return await getFromEnvVar(context, varName, false);
+		return await getFromEnvVar(context, varName, isRequestContext);
 	}
-	let store = getVarStore(insomnia);
-	if(isNotValid(typeof store[varName])) {
-		if(onlyFromMemory) {
+	let varStore = getVarStore(/*insomnia*/);
+	if(isNotValid(typeof varStore[varName])) {
+		if(context == null) {
 			return null;
 		}
-		return await getFromEnvVar(context, varName, false);
+		return await getFromEnvVar(context, varName, isRequestContext);
 	}
-	return store[varName];
+	return varStore[varName];
 }
 
 
-global.setVar = function(insomnia, name, value) {
-	getVarStore(insomnia)[name] = value;
+global.setVar = async function(/*insomnia, */name, value) {
+	getVarStore(/*insomnia*/)[name] = value;
+	if(await isStoreEnabled(null)) {
+		await getOrSetValueOnStore(null, null, name, value);
+	}
 }
 
 module.exports.templateTags = [
@@ -140,7 +191,7 @@ module.exports.workspaceActions = [{
 
 module.exports.requestHooks = [
 	async function(context) {
-		let isEnabled = await context.store.hasItem('enabled') && await context.store.getItem('enabled') == 'true';
+		let isEnabled = await isStoreEnabled(context.store);
 		if(!isEnabled) {
 			return;
 		}
@@ -153,14 +204,14 @@ module.exports.requestHooks = [
 			}
 		}
 		for(i of allEnvVarNames) {
-			let memoryValue = await doGetVar(context, i, true);
+			let memoryValue = await doGetVar(null, i, true);
 			if(memoryValue == null) {
 				continue;
 			}
 			let storedValue = await getFromEnvVar(context, i, true);
 			if(memoryValue != storedValue) {
 				let envId = theEnv.getEnvironmentId();
-				await context.store.setItem(envId + '_' + i, memoryValue);
+				await getOrSetValueOnStore(context.store, envId, i, memoryValue);
 			}
 		}
 	}

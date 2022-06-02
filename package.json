@@ -1,0 +1,19 @@
+{
+  "name": "insomnia-plugin-variables",
+  "version": "0.0.1",
+  "private": false,
+  "insomnia": {
+    "name": "variables",
+    "description": "A (subjectively) better way to chain requests in insomnia/inso CLI"
+  },
+  "main": "main.js"
+  "license": "MIT",
+  "homepage": "https://github.com/pedro-arruda-moreira/insomnia-plugin-variables",
+  "repository": {
+      "type": "git",
+      "url": "git+https://github.com/pedro-arruda-moreira/insomnia-plugin-variables.git"
+  },
+  "contributors": [
+      "Pedro de Arruda Moreira <pedro_moreirasu@hotmail.com> (https://github.com/pedro-arruda-moreira)"
+  ],
+}

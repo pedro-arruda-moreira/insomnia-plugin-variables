@@ -25,11 +25,16 @@ async function getFromEnvVar(context, varName, requestContext) {
 		return await context.store.getItem(storeName);
 	} else {
 		envVar = theEnv[varName];
-		if(isNotValid(typeof envVar) && !requestContext) {
-			if(context.renderPurpose != 'send') {
-				return "<variable '" + varName + "' not found>";
-			} else {
-				throw new Error("variable '" + varName + "' not found");
+		if(!requestContext) {
+			let notForSend = context.renderPurpose != 'send';
+			if(isNotValid(typeof envVar)) {
+				if(notForSend) {
+					return "<variable '" + varName + "' not found>";
+				} else {
+					throw new Error("variable '" + varName + "' not found");
+				}
+			} else if(notForSend && envVar == '') {
+				return '<empty string>';
 			}
 		}
 		return envVar;
@@ -51,13 +56,27 @@ async function createConfigGUI(context) {
 	if(isChecked) {
 		chk.setAttribute('checked', 'checked');
 	}
-	chk.addEventListener('change', async function(e) {
+	chk.addEventListener('change', async function(ev) {
 		isChecked = !isChecked;
 		await context.store.setItem('enabled', '' + isChecked);
 	});
+	let clearBtn = createElem('a');
+	clearBtn.href = 'javascript://';
+	clearBtn.addEventListener('click', async function(ev) {
+		if(global.confirm('Are you sure? This cannot be undone!')) {
+			await context.store.clear();
+			if(isChecked) {
+				await context.store.setItem('enabled', '' + isChecked);
+			}
+		}
+	});
+	clearBtn.innerHTML = 'Clear persisted variables values';
 	let div = createElem('div');
 	div.appendChild(label);
 	div.appendChild(chk);
+	div.appendChild(createElem('br'));
+	div.appendChild(createElem('br'));
+	div.appendChild(clearBtn);
 	return div;
 }
 
@@ -85,6 +104,9 @@ global.setVar = function(insomnia, name, value) {
 
 module.exports.templateTags = [
 	{
+		liveDisplayName: function(args) {
+			return "Variable => " + args[0].value;
+		},
 		displayName: 'Variable',
 		name: 'variable',
 		description: 'Gets a variable',

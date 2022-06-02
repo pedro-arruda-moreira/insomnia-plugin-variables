@@ -1,0 +1,10 @@
+{
+  "name": "insomnia-plugin-variables",
+  "version": "0.0.1",
+  "private": true,
+  "insomnia": {
+    "name": "variables",
+    "description": ""
+  },
+  "main": "main.js"
+}

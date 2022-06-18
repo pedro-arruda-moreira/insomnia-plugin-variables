@@ -10,7 +10,7 @@ export const saveVariablesHook: RequestHook = async (context: RequestContext) =>
     }
     let i = 0;
     for(; i < varHandlerList.length - 1; i++) {
-        const allValues = varHandlerList[i].getAll();
+        const allValues = await varHandlerList[i].getAll();
         for(const k in allValues) {
             if(await varHandlerList[i + 1].canSave(k, allValues[k] as string)) {
                 await varHandlerList[i + 1].save(k, allValues[k] as string);

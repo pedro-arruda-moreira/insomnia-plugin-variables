@@ -1,5 +1,5 @@
 import { PluginStore, RenderContext, RequestContext } from "../../insomnia-api/InsomniaAPI";
-import { getBestVarStore, isNotValid, OpenObject, storeEnvironment } from "../../Utils";
+import { isNotValid, OpenObject, storeEnvironment } from "../../Utils";
 import { RequestHandler } from "../RequestHandler";
 import { VarHandler } from "../VarHandler";
 

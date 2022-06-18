@@ -3,19 +3,22 @@ import { Environment } from "./insomnia-api/InsomniaAPI";
 const ENVIRONMENT_KEY = '__environment__';
 let LAST_INSO_OBJ = null;
 
-function getVarStore(targetObj: any, reset: boolean): OpenObject {
+export function getVarStore(targetObj: any, reset: boolean): OpenObject {
 	let varStore = targetObj.varStore as OpenObject | null;
 	if(isNotValid(varStore) || reset) {
 		console.log('creating new var store.');
+        const oldVarStore = varStore;
 		varStore = {};
+        if(oldVarStore?.ENVIRONMENT_KEY) {
+            varStore[ENVIRONMENT_KEY] = oldVarStore[ENVIRONMENT_KEY];
+        }
 		targetObj.varStore = varStore;
 	}
 	return varStore as OpenObject;
 }
 
 export function isValid(value: any) {
-    const tp = typeof(value) as string;
-    return tp != 'null' && tp != 'undefined';
+    return value != null && value != undefined;
 }
 
 export function isNotValid(value: any) {
@@ -23,7 +26,7 @@ export function isNotValid(value: any) {
 }
 
 export function storeEnvironment(env: Environment | null) {
-    const varStore = getBestVarStore();
+    const varStore = getVarStore(global, false);
     if(isNotValid(env)) {
         env = varStore[ENVIRONMENT_KEY] as Environment;
     } else {

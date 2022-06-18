@@ -1,4 +1,5 @@
 import { PluginStore, WorkspaceAction, WorkspaceActionContext } from "../insomnia-api/InsomniaAPI";
+import { getVarStore } from "../Utils";
 import { checkPluginStore, isStoreEnabled } from "../var-handler/impl/StoreVarHandler";
 
 async function createConfigGUI(context: WorkspaceActionContext) {
@@ -24,6 +25,7 @@ async function createConfigGUI(context: WorkspaceActionContext) {
 	clearBtn.href = 'javascript://';
 	clearBtn.addEventListener('click', async function(ev) {
 		if(global.confirm('Are you sure? This cannot be undone!')) {
+			getVarStore(global, true);
 			await (checkPluginStore(context.store) as PluginStore).clear();
 			if(isChecked) {
 				await (checkPluginStore(context.store) as PluginStore).setItem('enabled', '' + isChecked);

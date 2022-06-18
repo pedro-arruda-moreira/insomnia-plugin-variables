@@ -8,7 +8,7 @@ export class EnvironmentVarHandler implements VarHandler, RequestHandler {
         const env = storeEnvironment(null);
         const ret: OpenObject = {};
         for(const k in env) {
-            if(typeof k != 'function') {
+            if(typeof env[k] == 'string') {
                 ret[k] = env[k];
             }
         }

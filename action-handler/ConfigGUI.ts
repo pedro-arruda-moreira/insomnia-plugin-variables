@@ -40,7 +40,7 @@ async function createConfigGUI(context: WorkspaceActionContext) {
 	return div;
 }
 
-const configAction: WorkspaceAction = {
+export const configAction: WorkspaceAction = {
     label: 'insomnia-plugin-variables options',
     icon: 'fa-wrench',
     action: async(context: WorkspaceActionContext, data: any) => {
@@ -56,5 +56,3 @@ const configAction: WorkspaceAction = {
       
     }
 }
-
-export default configAction;

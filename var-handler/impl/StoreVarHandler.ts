@@ -1,5 +1,5 @@
-import { PluginStore } from "../../insomnia-api/InsomniaAPI";
-import { getBestVarStore, isNotValid, storeEnvironment } from "../../Utils";
+import { PluginStore, RenderContext, RequestContext } from "../../insomnia-api/InsomniaAPI";
+import { getBestVarStore, isNotValid, OpenObject, storeEnvironment } from "../../Utils";
 import { RequestHandler } from "../RequestHandler";
 import { VarHandler } from "../VarHandler";
 
@@ -42,21 +42,32 @@ async function getOrSetValueOnStore(pStore: PluginStore | null, env, key, value)
 }
 
 export class StoreVarHandler implements VarHandler, RequestHandler {
-    beforeRequest(context: any): void {
+	async getAll(): Promise<OpenObject> {
+		if(!await isStoreEnabled(null)) {
+			return Promise.resolve({});
+		}
+		const allValues = await checkPluginStore(null)!.all();
+		const ret = {};
+		for(const v of allValues) {
+			ret[v.key] = v.value;
+		}
+		return ret;
+	}
+    beforeRequest(context: RequestContext): void {
         storeEnvironment(context.request.getEnvironment());
     }
     async canSave(_: string, __: string): Promise<boolean> {
         return await isStoreEnabled(null);
     }
     async save(name: string, value: string): Promise<void> {
-        await getOrSetValueOnStore(null, null, name, value);
+        await getOrSetValueOnStore(null, null, name, value);1
         return Promise.resolve();
     }
-    async read(context: any, name: string): Promise<string | null> {
-        if(!await isStoreEnabled(null)) {
+    async read(context: RenderContext, name: string): Promise<string | null> {
+        if(!await isStoreEnabled(context.store)) {
             return Promise.resolve(null);
         }
-        return await getOrSetValueOnStore(null, context.context, name, null);
+        return await getOrSetValueOnStore(context.store, context.context, name, null);
     }
     
 }

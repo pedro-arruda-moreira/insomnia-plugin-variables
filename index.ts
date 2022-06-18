@@ -1,16 +1,7 @@
-import configAction from "./action-handler/ConfigGUI";
-import { EnvironmentVarHandler } from "./var-handler/impl/EnvironmentVarHandler";
-import { RAMVarHandler } from "./var-handler/impl/RAMVarHandler";
-import { StoreVarHandler } from "./var-handler/impl/StoreVarHandler";
-import { RequestHandler } from "./var-handler/RequestHandler";
-import { VarHandler } from "./var-handler/VarHandler";
-
-const RAMHandler = new RAMVarHandler();
-const storeHandler = new StoreVarHandler();
-const envHandler = new EnvironmentVarHandler();
-
-const varHandlerList: VarHandler[] = [RAMHandler, storeHandler, envHandler];
-const requestHandlerList: RequestHandler[] = [storeHandler, envHandler];
+import { configAction } from "./action-handler/ConfigGUI";
+import { RenderContext } from "./insomnia-api/InsomniaAPI";
+import { saveVariablesHook } from "./request-handler/RequestHooks";
+import { varHandlerList } from "./var-handler/VarHandler";
 
 
 global.setVar = async function(name: string, value: string) {
@@ -23,6 +14,11 @@ global.setVar = async function(name: string, value: string) {
 
 module.exports.workspaceActions = [
     configAction
+];
+
+
+module.exports.requestHooks = [
+    saveVariablesHook
 ];
 
 module.exports.templateTags = [
@@ -39,7 +35,7 @@ module.exports.templateTags = [
 				type: 'string',
 			},
 		],
-		async run(context, varName) {
+		async run(context: RenderContext, varName: string) {
             const notForSend = context.renderPurpose != 'send';
             for(const handler of varHandlerList) {
                 const value = await handler.read(context, varName);

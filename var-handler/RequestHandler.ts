@@ -1,3 +1,5 @@
+import { RequestContext } from "../insomnia-api/InsomniaAPI";
+
 export interface RequestHandler {
-    beforeRequest(context:any): void;
+    beforeRequest(context: RequestContext): void;
 }

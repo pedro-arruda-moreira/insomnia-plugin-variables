@@ -1,17 +1,18 @@
+import { PluginStore } from "../../insomnia-api/InsomniaAPI";
 import { getBestVarStore, isNotValid, storeEnvironment } from "../../Utils";
 import { RequestHandler } from "../RequestHandler";
 import { VarHandler } from "../VarHandler";
 
-let pluginStore: any = null;
+let pluginStore: PluginStore | null = null;
 
-function checkPluginStore(pStore) {
+export function checkPluginStore(pStore: PluginStore | null): PluginStore | null {
 	if(pluginStore == null && pStore != null) {
 		pluginStore = pStore;
 	}
 	return pluginStore;
 }
 
-async function isStoreEnabled(pStore) {
+export async function isStoreEnabled(pStore: PluginStore | null) {
 	pStore = checkPluginStore(pStore);
 	if(pStore == null) {
 		return false;
@@ -20,7 +21,7 @@ async function isStoreEnabled(pStore) {
 	  && await pStore.getItem('enabled') == 'true';
 }
 
-async function getOrSetValueOnStore(pStore, env, key, value): Promise<string | null> {
+async function getOrSetValueOnStore(pStore: PluginStore | null, env, key, value): Promise<string | null> {
 	pStore = checkPluginStore(pStore);
 	if(isNotValid(pStore)) {
 		throw new Error('plugin store not found.');
@@ -33,9 +34,9 @@ async function getOrSetValueOnStore(pStore, env, key, value): Promise<string | n
 	}
 	let pluginStoreKey = env.getEnvironmentId() + '_' + key;
 	if(value == null) {
-		return await pStore.getItem(pluginStoreKey);
+		return await (pStore as PluginStore).getItem(pluginStoreKey);
 	} else {
-		await pStore.setItem(pluginStoreKey, value);
+		await (pStore as PluginStore).setItem(pluginStoreKey, value);
         return Promise.resolve(null);
 	}
 }

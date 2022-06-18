@@ -1,8 +1,9 @@
-import { EnvironmentVarHandler } from "./handler/impl/EnvironmentVarHandler";
-import { RAMVarHandler } from "./handler/impl/RAMVarHandler";
-import { StoreVarHandler } from "./handler/impl/StoreVarHandler";
-import { RequestHandler } from "./handler/RequestHandler";
-import { VarHandler } from "./handler/VarHandler";
+import configAction from "./action-handler/ConfigGUI";
+import { EnvironmentVarHandler } from "./var-handler/impl/EnvironmentVarHandler";
+import { RAMVarHandler } from "./var-handler/impl/RAMVarHandler";
+import { StoreVarHandler } from "./var-handler/impl/StoreVarHandler";
+import { RequestHandler } from "./var-handler/RequestHandler";
+import { VarHandler } from "./var-handler/VarHandler";
 
 const RAMHandler = new RAMVarHandler();
 const storeHandler = new StoreVarHandler();
@@ -19,6 +20,10 @@ global.setVar = async function(name: string, value: string) {
         }
     }
 }
+
+module.exports.workspaceActions = [
+    configAction
+];
 
 module.exports.templateTags = [
 	{

@@ -6,6 +6,10 @@
     "name": "variables",
     "description": "A (subjectively) better way to chain requests in insomnia/inso CLI"
   },
+  "files": [
+    "out/**/**.js",
+    "docs/**"
+  ],
   "main": "./out/index.js",
   "license": "MIT",
   "homepage": "https://github.com/pedro-arruda-moreira/insomnia-plugin-variables",

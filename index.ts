@@ -24,7 +24,7 @@ module.exports.requestHooks = [
 module.exports.templateTags = [
 	{
 		liveDisplayName: function(args) {
-			return "Variable => " + args[0].value;
+			return `Variable => ${args[0].value}`;
 		},
 		displayName: 'Variable',
 		name: 'variable',
@@ -47,9 +47,9 @@ module.exports.templateTags = [
                 }
             }
             if(notForSend) {
-                return "variable '" + varName + "' not found";
+                return `variable ${varName} not found`;
             } else {
-				throw new Error("variable '" + varName + "' not found");
+				throw new Error(`variable ${varName} not found`);
             }
 		}
 	}

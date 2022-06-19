@@ -11,7 +11,7 @@ $ npm install insomnia-plugin-variables
 ![Plugin configuration screen screenshot](/docs/img/insomnia_plugin_cfg.png "Plugin configuration screen screenshot")
 
 
-## How to use it
+## How to use it?
 
 - When testing, it's possible to define variables programmatically:
 ```js

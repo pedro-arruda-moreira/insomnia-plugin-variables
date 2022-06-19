@@ -22,3 +22,9 @@ await global.setVar('my-var2', 'other value');
 - Then just use the tag for putting the value on a header or on the body:
 ![Tag config screenshot](/docs/img/tag.png "Tag config screenshot")
 
+
+### Persisting values
+- Values can be persisted, to enable it, open the plugin configuration from the document menu:
+![Document menu](/docs/img/menu-cfg.png "Document menu")
+- And then enable it:
+![Configuration](/docs/img/persist.png "Configuration")
